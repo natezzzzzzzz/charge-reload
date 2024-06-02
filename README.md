@@ -20,6 +20,7 @@ Weapons of the same level can cancel each other out
 # Game Mechanics:
 2 - Any amount of players
 Turn-based, with 6 seconds timer to choose an action; charge default
+sexy
 
 # GAME DRAFT
 Arraylist for server sync
