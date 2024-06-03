@@ -1,15 +1,21 @@
 public class Player {
-    private String id; //name or id of the user
-    private int health = 2; //health of the player, default to 2
-    private int charges = 0; //amount of charges of the player, default to 0
+    private String id; // name or id of the user
+    private int health = 2; // health of the player, default to 2
+    private int charges = 0; // amount of charges of the player, default to 0
     private int block = 0;
     private int reflect = 0;
-    private int points = 0; //amount of points of the player, default to 0
+    private int points = 0; // amount of points of the player, default to 0
     private Player target;
+
     /**
      * This constructor creates an instance of the player object
      */
-    public Player(){
+    public Player() {
+        health = 2;
+        charges = 0;
+        block = 0;
+        reflect = 0;
+        points = 0;
     }
 
     public String getId() {
@@ -44,7 +50,7 @@ public class Player {
         this.points = points;
     }
 
-    public boolean isDead(){
+    public boolean isDead() {
         return health <= 0;
     }
 
@@ -64,8 +70,8 @@ public class Player {
         this.reflect = reflect;
     }
 
-    public Player getTarget() throws NullPointerException{
-        if(target == null){
+    public Player getTarget() throws NullPointerException {
+        if (target == null) {
             throw new NullPointerException();
         }
         return target;
@@ -74,6 +80,5 @@ public class Player {
     public void setTarget(Player target) {
         this.target = target;
     }
-
 
 }
