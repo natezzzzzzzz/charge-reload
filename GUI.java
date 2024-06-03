@@ -1,13 +1,14 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class GUI {
 
     private JFrame frame;
 
     private JPanel mainPanel = new JPanel(new GridLayout(2, 1)); // contains everything
-    private JPanel playerPanel = new JPanel(new GridLayout(1, 2, 10, 5));
+    // private JPanel playerPanel = new JPanel(new GridLayout(1, 2, 10, 5));
     private JPanel textPanel = new JPanel();
 
     private JTextArea gameplay = new JTextArea("", 20, 60);
@@ -29,12 +30,12 @@ public class GUI {
     private JButton p1block = new JButton("Block");
     private JButton p2block = new JButton("Block");
 
-    private JLabel p1hp = new JLabel("kimchiballsac");
-    private JLabel p2hp = new JLabel("pwet");
-    private JLabel p1c = new JLabel("0");
-    private JLabel p2c = new JLabel("0");
+    private JLabel charges = new JLabel();
+    private JLabel health = new JLabel();
+    private JLabel name = new JLabel();
 
     public GUI() {
+
         frame = new JFrame();
 
         Container contentPane = frame.getContentPane();
@@ -42,27 +43,28 @@ public class GUI {
 
         gameplay.setEditable(false);
 
-        p1Info.add(p1hp);
-        p1Info.add(p1c);
+        p1Info.add(name);
+        p1Info.add(charges);
+        p1Info.add(health);
         p1Actions.add(p1charge);
         p1Actions.add(p1bang);
         p1Actions.add(p1block);
         p1Panel.add(p1Info, BorderLayout.CENTER);
         p1Panel.add(p1Actions, BorderLayout.SOUTH);
 
-        p2Info.add(p2hp);
-        p2Info.add(p2c);
-        p2Actions.add(p2charge);
-        p2Actions.add(p2bang);
-        p2Actions.add(p2block);
-        p2Panel.add(p2Info, BorderLayout.CENTER);
-        p2Panel.add(p2Actions, BorderLayout.SOUTH);
+        // p2Info.add(p2hp);
+        // p2Info.add(p2c);
+        // p2Actions.add(p2charge);
+        // p2Actions.add(p2bang);
+        // p2Actions.add(p2block);
+        // p2Panel.add(p2Info, BorderLayout.CENTER);
+        // p2Panel.add(p2Actions, BorderLayout.SOUTH);
 
         textPanel.add(scroll);
 
-        playerPanel.add(p1Panel);
-        playerPanel.add(p2Panel);
-        mainPanel.add(playerPanel);
+        mainPanel.add(p1Panel);
+        // playerPanel.add(p2Panel);
+        // mainPanel.add(playerPanel);
         mainPanel.add(textPanel);
         frame.add(mainPanel);
 
@@ -81,54 +83,46 @@ public class GUI {
 
         // ===========================================================================
 
-        ActionListener chargeP1 = new ActionListener() {
+        ActionListener action = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                // add actions here
-            }
-        };
-        p1charge.addActionListener(chargeP1);
+                if (ae.getSource() == p1charge) {
 
-        ActionListener bangP1 = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // add action
-            }
-        };
-        p1bang.addActionListener(bangP1);
+                } else if (ae.getSource() == p1bang) {
 
-        ActionListener blockP1 = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // add action
+                } else if (ae.getSource() == p1block) {
+
+                }
             }
         };
-        p1block.addActionListener(blockP1);
+        p1charge.addActionListener(action);
+        p1bang.addActionListener(action);
+        p1block.addActionListener(action);
 
         // ------------------------------------------------------------------------------------------------
 
-        ActionListener chargeP2 = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // add actions here
-            }
-        };
-        p2charge.addActionListener(chargeP2);
+        // ActionListener chargeP2 = new ActionListener() {
+        // @Override
+        // public void actionPerformed(ActionEvent ae) {
+        // // add actions here
+        // }
+        // };
+        // p2charge.addActionListener(chargeP2);
 
-        ActionListener bangP2 = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // add action
-            }
-        };
-        p2bang.addActionListener(bangP2);
+        // ActionListener bangP2 = new ActionListener() {
+        // @Override
+        // public void actionPerformed(ActionEvent ae) {
+        // // add action
+        // }
+        // };
+        // p2bang.addActionListener(bangP2);
 
-        ActionListener blockP2 = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // add action
-            }
-        };
-        p2block.addActionListener(blockP2);
+        // ActionListener blockP2 = new ActionListener() {
+        // @Override
+        // public void actionPerformed(ActionEvent ae) {
+        // // add action
+        // }
+        // };
+        // p2block.addActionListener(blockP2);
     }
 }
