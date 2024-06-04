@@ -2,8 +2,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.net.*;
+import java.io.*;
 
 public class GUI {
+
+    private Socket socket;
+    private int playerID;
+    private boolean host;
 
     private JFrame frame;
 
@@ -15,24 +21,30 @@ public class GUI {
     private JScrollPane scroll = new JScrollPane(gameplay);
 
     private JPanel p1Panel = new JPanel(new BorderLayout());
-    private JPanel p2Panel = new JPanel(new BorderLayout());
+    // private JPanel p2Panel = new JPanel(new BorderLayout());
 
     private JPanel p1Info = new JPanel(new FlowLayout()); // contains p1 health, charges
-    private JPanel p2Info = new JPanel(new FlowLayout()); // contains p2 health, charges
+    // private JPanel p2Info = new JPanel(new FlowLayout()); // contains p2 health,
+    // charges
 
     private JPanel p1Actions = new JPanel(new GridLayout(1, 3)); // contains p1 buttons
-    private JPanel p2Actions = new JPanel(new GridLayout(1, 3)); // contains p2 buttons
+    // private JPanel p2Actions = new JPanel(new GridLayout(1, 3)); // contains p2
+    // buttons
 
     private JButton p1charge = new JButton("Charge");
-    private JButton p2charge = new JButton("Charge");
+    // private JButton p2charge = new JButton("Charge");
     private JButton p1bang = new JButton("Bang");
-    private JButton p2bang = new JButton("Bang");
+    // private JButton p2bang = new JButton("Bang");
     private JButton p1block = new JButton("Block");
-    private JButton p2block = new JButton("Block");
+    // private JButton p2block = new JButton("Block");
+
+    // ==============================================================================================
 
     private JLabel charges = new JLabel();
     private JLabel health = new JLabel();
     private JLabel name = new JLabel();
+
+    private boolean isDead = false;
 
     public GUI() {
 
@@ -124,5 +136,59 @@ public class GUI {
         // }
         // };
         // p2block.addActionListener(blockP2);
+    }
+
+    public void connectToServer() {
+
+        try {
+            socket = new Socket();
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            playerID = in.readInt();
+            System.out.println("You are Player #" + playerID);
+
+            if (playerID == 1) {
+
+                System.out.println("You are also the Host of this Game.");
+            }
+        } catch (IOException e) {
+            System.out.println("IOException at connectToServer()");
+        }
+    }
+
+    private class ReadFromServer implements Runnable {
+
+        private DataInputStream dataIn;
+
+        public ReadFromServer(DataInputStream in) {
+            dataIn = in;
+        }
+
+        public void run() {
+            try {
+                // gets the data of all the other players
+                // puts the data in a linked list so the JLabels can access
+            } catch (InterruptedException e) {
+                System.out.println("InterruptedException at RFS run.");
+            }
+        }
+    }
+
+    private class WriteToServer implements Runnable {
+
+        private DataOutputStream dataOut;
+
+        public WriteToServer(DataOutputStream out) {
+            dataOut = out;
+        }
+
+        public void run() {
+            try {
+                // writes the details of only THIS PLAYER
+            } catch (InterruptedException e) {
+                System.out.println("InterruptedException at WTS run.");
+            }
+        }
+
     }
 }

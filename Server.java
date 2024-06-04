@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Server {
 
@@ -9,7 +10,7 @@ public class Server {
     private int playercount;
     private int playermax;
 
-    private ArrayList<Integer> players = new ArrayList<>();
+    private ArrayList<LinkedList> players = new ArrayList<>();
 
     public Server() {
         playercount = 0;
@@ -29,8 +30,7 @@ public class Server {
 
             playercount++;
             out.writeInt(playercount);
-            players.add(playercount);
-            // new variables here
+
         } catch (IOException e) {
             System.out.println("IOException from acceptPlayers().");
         }
@@ -57,6 +57,12 @@ public class Server {
             }
         }
 
+        public void getPlayerDetails() {
+            // gets the player details from each client through their respective input
+            // streams
+            // and puts the details in a linked list to access for later
+        }
+
     }
 
     private class WriteToClient implements Runnable {
@@ -77,6 +83,11 @@ public class Server {
             } catch (InterruptedException e) {
                 System.out.println("InterruptedException from WTC run.");
             }
+        }
+
+        public void writePlayerDetails() {
+            // outs the details of the players to each other, not sending a player's details
+            // to themself
         }
     }
 }
