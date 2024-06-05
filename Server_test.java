@@ -3,21 +3,26 @@ import java.net.*;
 import java.awt.event.*;
 import java.util.*;
 
-public class Server_test{
+public class Server_test {
 
     private ServerSocket ss;
     private int playercount;
     private final int playermax = 2;
     private boolean hostStarts;
 
+    private Game game;
+    private String gameplayString;
+
     private ArrayList<LinkedList> players = new ArrayList<>();
-    //Data for players and for each player ↓↓
-    // player at index 0 --> player object with specified name and id
+    // Data for players and for each player (each player is a linked list)↓↓
+    // player at index 0 --> player object with specified name and id with default
+    // health, charges, etc
     // player at index 1 --> socket
     // player at index 2 --> rfc, read runnable
     // player at index 3 --> wfc, write runnable
     // player at index 4 --> read thread
     // player at index 5 --> write thread
+    // players.get(1).get(2) --> player 2's rfc
 
     public Server_test() {
         playercount = 0;
@@ -34,7 +39,7 @@ public class Server_test{
      */
     public void acceptPlayers() {
         try {
-            while(hostStarts || playercount < playermax){
+            while (hostStarts || playercount < playermax) {
                 Socket s = ss.accept();
                 ObjectInputStream in = new ObjectInputStream(s.getInputStream());
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
@@ -47,22 +52,30 @@ public class Server_test{
                 WriteToClient wtc = new WriteToClient(playercount, out);
 
                 Scanner input = new Scanner(System.in);
-
                 System.out.println("Enter name:");
                 String name = input.nextLine();
+
                 LinkedList<Object> player_data = new LinkedList<Object>();
-                player_data.add(new Player(name,playercount));
-                player_data.add(s);
-                player_data.add(rfc);
-                player_data.add(wtc);
+                Thread readThread = new Thread(rfc);
+                Thread writeThread = new Thread(wtc);
+                player_data.add(new Player(name, playercount)); // index 0
+                player_data.add(s); // index 1
+                player_data.add(rfc); // index 2
+                player_data.add(wtc); // index 3
+                player_data.add(readThread); // index 4
+                player_data.add(writeThread); // index 5
                 players.add(player_data);
-                }
-            //send start msg for each player
-            for(LinkedList<Object> player: players){
-                ((WriteToClient) player.get(3)).sendStartMsg();
-                ((ReadFromClient) player.get(2)).getPlayerDetails();
+
+                // ((WriteToClient) player.get(3)).sendStartMsg();
             }
-            //wait ready player
+            // send start msg for each player
+            // after host starts game ??
+
+            if (playercount == 1) {
+                ((ReadFromClient) players.get(0).get(2)).getPlayerDetails();
+            }
+
+            // wait ready player
 
             System.out.println("No longer accepting connections.");
         } catch (IOException e) {
@@ -85,25 +98,34 @@ public class Server_test{
          */
         public void run() {
             try {
-                for(LinkedList<Object> player : players){
-                    ((Player) player.get(0)).setHealth(ObjectIn.readInt());
-                    ((Player) player.get(0)).setCharges(ObjectIn.readInt());
-                    ((Player) player.get(0)).setAction((ActionType)ObjectIn.readObject());
-                    ((Player) player.get(0)).setTarget((Player)ObjectIn.readObject());
-                    ((Player) player.get(0)).setBlock(ObjectIn.readInt());
-                    ((Player) player.get(0)).setReflect(ObjectIn.readInt());
-                    ((Player) player.get(0)).setPoints(ObjectIn.readInt());
+                while (true) {
+                    for (LinkedList<Object> player : players) {
+                        ((Player) player.get(0)).setHealth(ObjectIn.readInt());
+                        ((Player) player.get(0)).setCharges(ObjectIn.readInt());
+                        ((Player) player.get(0)).setAction((ActionType) ObjectIn.readObject());
+                        ((Player) player.get(0)).setTarget((Player) ObjectIn.readObject());
+                        ((Player) player.get(0)).setBlock(ObjectIn.readInt());
+                        ((Player) player.get(0)).setReflect(ObjectIn.readInt());
+                        ((Player) player.get(0)).setPoints(ObjectIn.readInt());
+                        // player.set(0, (Player) ObjectIn.readObject());
+                    }
+
+                    for (LinkedList<Object> player : players) {
+                        // action of player
+                        if (((Player) player.get(0)).getAction().equals(ActionType.CHARGE)) {
+                            // objectOut.writeUTF(gameplay details);
+                            gameplayString += game.charge((Player) player.get(0)) + "\n";
+                        }
+                    }
+
+                    Thread.sleep(6000);
                 }
-                // datain health
-                // datain charges
-                // datain action
-                // datain target
-            } //catch (InterruptedException e) {
-                //System.out.println("InterruptedException from RFC run.");}
-            catch (IOException e) {
+            } catch (IOException e) {
                 System.out.println("IO Exception from RFC run()");
-            } catch(ClassNotFoundException e){
+            } catch (ClassNotFoundException e) {
                 System.out.println("Class not found exception from WTC run()");
+            } catch (InterruptedException e) {
+                System.out.println("InterruptedException from RFC run()");
             }
         }
 
@@ -111,24 +133,31 @@ public class Server_test{
             // gets the player details from each client through their respective input
             // streams
             // and puts the details in a linked list to access for later
-            try{
-                while(true) {
-                    if(playerID == 1 && playercount>1){
-                        System.out.println("Is Host Ready");
-                        hostStarts = ObjectIn.readBoolean();
+            try {
+                while (playerID == 1) {
+                    hostStarts = ObjectIn.readBoolean();
+
+                    if (hostStarts && players.size() > 1) {
+                        System.out.println("Host is Ready.. Game Starting..");
                         break;
                     }
                 }
-                if(hostStarts){
-                    for(LinkedList<Object> player: players){
-                        ((WriteToClient)player.get(3)).sendGameStart();
-                        player.add(new Thread((ReadFromClient) player.get(2)));
-                        player.add(new Thread((WriteToClient) player.get(3)));
+
+                // game starts here
+                if (hostStarts) {
+                    ArrayList<Player> objPlayers = new ArrayList<Player>();
+                    for (LinkedList<Object> player : players) {
+                        ((WriteToClient) player.get(3)).sendGameStart();
+                        // player.add(new Thread((ReadFromClient) player.get(2)));
+                        // player.add(new Thread((WriteToClient) player.get(3)));
                         ((Thread) player.get(4)).start();
                         ((Thread) player.get(5)).start();
+                        objPlayers.add((Player) player.get(0));
                     }
+
+                    game = new Game(objPlayers);
                 }
-            } catch (IOException e){
+            } catch (IOException e) {
                 System.out.println("IOException from getPlayerDetails");
             }
         }
@@ -149,25 +178,36 @@ public class Server_test{
 
         public void run() {
             try {
-                while(true){
-                for (LinkedList<Object> player : players) {
-                    writePlayerDetails(player);
-                    //action of player
-                    if(((Player) player.get(0)).getAction().equals(ActionType.CHARGE)){
-                        
+                while (true) {
+                    for (LinkedList<Object> player : players) {
+                        writePlayerDetails(player);
+
+                        // // action of player
+                        // if (((Player) player.get(0)).getAction().equals(ActionType.CHARGE)) {
+                        // // objectOut.writeUTF(gameplay details);
+                        // objectOut.writeUTF(game.charge(player1));
+                        // }
+
+                        objectOut.writeUTF(gameplayString);
                     }
+                    gameplayString = "";
+                    for (LinkedList<Object> p : players) {
+                        ((Player) p.get(0)).setAction(ActionType.CHARGE);
+                    }
+                    Thread.sleep(6000);
                 }
-            }
             } catch (IOException e) {
                 System.out.println("IOException from WTC run.");
+            } catch (InterruptedException e) {
+                System.out.println("InterruptedException from WTC run.");
             }
         }
 
-        public void writePlayerDetails(LinkedList<Object> player) throws IOException{
+        public void writePlayerDetails(LinkedList<Object> player) throws IOException {
             // outs the details of the players to each other, not sending a player's details
             // to themself
 
-            for(LinkedList<Object> otherPlayer : players){
+            for (LinkedList<Object> otherPlayer : players) {
                 if (otherPlayer.equals(player))
                     continue;
                 objectOut.writeInt(((Player) (otherPlayer.get(0))).getHealth());
@@ -177,7 +217,8 @@ public class Server_test{
                 objectOut.writeInt(((Player) (otherPlayer.get(0))).getBlock());
                 objectOut.writeInt(((Player) (otherPlayer.get(0))).getReflect());
                 objectOut.writeInt(((Player) (otherPlayer.get(0))).getPoints());
-                }
+                // objectOut.writeObject((Player) (otherPlayer.get(0)));
+            }
         }
 
         public void sendStartMsg() {
@@ -195,6 +236,5 @@ public class Server_test{
                 System.out.println("IOException from sendGameStart()");
             }
         }
-
     }
 }

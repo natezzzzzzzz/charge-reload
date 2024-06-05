@@ -170,6 +170,12 @@ public class Game {
         return out;
     }
 
+    public String charge(Player p) {
+        p.setCharges(p.getCharges() + 1);
+        String out = p.getName() + " " + charge.getName() + " s!";
+        return out;
+    }
+
     public Action EnumTypeToAction(ActionType e) {
         switch (e) {
             case REGULAR_BLOCK:

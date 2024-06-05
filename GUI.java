@@ -142,8 +142,8 @@ public class GUI {
 
         try {
             socket = new Socket();
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             playerID = in.readInt();
             System.out.println("You are Player #" + playerID);
 
@@ -158,16 +158,23 @@ public class GUI {
 
     private class ReadFromServer implements Runnable {
 
-        private DataInputStream dataIn;
+        private ObjectInputStream dataIn;
 
-        public ReadFromServer(DataInputStream in) {
+        public ReadFromServer(ObjectInputStream in) {
             dataIn = in;
         }
 
         public void run() {
             try {
-                // gets the data of all the other players
-                // puts the data in a linked list so the JLabels can access
+                // datain health
+                // datain charges
+                // datain action
+                // datain target
+                // datain block
+                // datain reflect
+                // datain points
+
+                // datain gameplay
             } catch (InterruptedException e) {
                 System.out.println("InterruptedException at RFS run.");
             }
@@ -176,9 +183,9 @@ public class GUI {
 
     private class WriteToServer implements Runnable {
 
-        private DataOutputStream dataOut;
+        private ObjectOutputStream dataOut;
 
-        public WriteToServer(DataOutputStream out) {
+        public WriteToServer(ObjectOutputStream out) {
             dataOut = out;
         }
 
