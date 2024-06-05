@@ -16,6 +16,8 @@ public class Server_test{
     // player at index 1 --> socket
     // player at index 2 --> rfc, read runnable
     // player at index 3 --> wfc, write runnable
+    // player at index 4 --> read thread
+    // player at index 5 --> write thread
 
     public Server_test() {
         playercount = 0;
@@ -34,15 +36,16 @@ public class Server_test{
         try {
             while(hostStarts || playercount < playermax){
                 Socket s = ss.accept();
-                DataInputStream in = new DataInputStream(s.getInputStream());
-                DataOutputStream out = new DataOutputStream(s.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(s.getInputStream());
+                ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
 
                 playercount++;
                 out.writeInt(playercount);
                 System.out.println("Player " + playercount + " has connected!");
 
                 ReadFromClient rfc = new ReadFromClient(playercount, in);
-                ReadFromClient wfc = new ReadFromClient(playercount, in);
+                WriteToClient wtc = new WriteToClient(playercount, out);
+
                 Scanner input = new Scanner(System.in);
 
                 System.out.println("Enter name:");
@@ -51,10 +54,14 @@ public class Server_test{
                 player_data.add(new Player(name,playercount));
                 player_data.add(s);
                 player_data.add(rfc);
-                player_data.add(wfc);
+                player_data.add(wtc);
                 players.add(player_data);
                 }
             //send start msg for each player
+            for(LinkedList<Object> player: players){
+                ((WriteToClient) player.get(3)).sendStartMsg();
+                ((ReadFromClient) player.get(2)).getPlayerDetails();
+            }
             //wait ready player
 
             System.out.println("No longer accepting connections.");
@@ -66,11 +73,11 @@ public class Server_test{
     private class ReadFromClient implements Runnable {
 
         private int playerID;
-        private DataInputStream dataIn;
+        private ObjectInputStream ObjectIn;
 
-        public ReadFromClient(int id, DataInputStream in) {
+        public ReadFromClient(int id, ObjectInputStream in) {
             playerID = id;
-            dataIn = in;
+            ObjectIn = in;
         }
 
         /**
@@ -78,22 +85,25 @@ public class Server_test{
          */
         public void run() {
             try {
-                for(LinkedList player : players){
-                    ((Player) player.get(0)).setHealth(dataIn.readInt());
-                    ((Player) player.get(0)).setCharges(dataIn.readInt());
-                    ((Player) player.get(0)).setTarget((Player)players.get(dataIn.readInt()-1).get(0));
-                    ((Player) player.get(0)).setBlock(dataIn.readInt());
-                    ((Player) player.get(0)).setCharges(dataIn.readInt());
-                    ((Player) player.get(0)).setTarget(dataIn.readObject());
+                for(LinkedList<Object> player : players){
+                    ((Player) player.get(0)).setHealth(ObjectIn.readInt());
+                    ((Player) player.get(0)).setCharges(ObjectIn.readInt());
+                    ((Player) player.get(0)).setAction((ActionType)ObjectIn.readObject());
+                    ((Player) player.get(0)).setTarget((Player)ObjectIn.readObject());
+                    ((Player) player.get(0)).setBlock(ObjectIn.readInt());
+                    ((Player) player.get(0)).setReflect(ObjectIn.readInt());
+                    ((Player) player.get(0)).setPoints(ObjectIn.readInt());
                 }
                 // datain health
                 // datain charges
                 // datain action
                 // datain target
-            } catch (InterruptedException e) {
-                System.out.println("InterruptedException from RFC run.");
-            } catch (IOException e) {
+            } //catch (InterruptedException e) {
+                //System.out.println("InterruptedException from RFC run.");}
+            catch (IOException e) {
                 System.out.println("IO Exception from RFC run()");
+            } catch(ClassNotFoundException e){
+                System.out.println("Class not found exception from WTC run()");
             }
         }
 
@@ -101,6 +111,26 @@ public class Server_test{
             // gets the player details from each client through their respective input
             // streams
             // and puts the details in a linked list to access for later
+            try{
+                while(true) {
+                    if(playerID == 1 && playercount>1){
+                        System.out.println("Is Host Ready");
+                        hostStarts = ObjectIn.readBoolean();
+                        break;
+                    }
+                }
+                if(hostStarts){
+                    for(LinkedList<Object> player: players){
+                        ((WriteToClient)player.get(3)).sendGameStart();
+                        player.add(new Thread((ReadFromClient) player.get(2)));
+                        player.add(new Thread((WriteToClient) player.get(3)));
+                        ((Thread) player.get(4)).start();
+                        ((Thread) player.get(5)).start();
+                    }
+                }
+            } catch (IOException e){
+                System.out.println("IOException from getPlayerDetails");
+            }
         }
 
     }
@@ -108,26 +138,63 @@ public class Server_test{
     private class WriteToClient implements Runnable {
 
         private int playerID;
-        private DataOutputStream dataOut;
+        private ObjectOutputStream objectOut;
 
-        public WriteToClient(int id, DataOutputStream out) {
+        public WriteToClient(int id, ObjectOutputStream out) {
             playerID = id;
-            dataOut = out;
+            objectOut = out;
+
+            System.out.println("WTC" + playerID + " Runnable Created");
         }
 
         public void run() {
             try {
-                for (Integer i : players) {
-
+                while(true){
+                for (LinkedList<Object> player : players) {
+                    writePlayerDetails(player);
+                    //action of player
+                    if(((Player) player.get(0)).getAction().equals(ActionType.CHARGE)){
+                        
+                    }
                 }
-            } catch (InterruptedException e) {
-                System.out.println("InterruptedException from WTC run.");
+            }
+            } catch (IOException e) {
+                System.out.println("IOException from WTC run.");
             }
         }
 
-        public void writePlayerDetails() {
+        public void writePlayerDetails(LinkedList<Object> player) throws IOException{
             // outs the details of the players to each other, not sending a player's details
             // to themself
+
+            for(LinkedList<Object> otherPlayer : players){
+                if (otherPlayer.equals(player))
+                    continue;
+                objectOut.writeInt(((Player) (otherPlayer.get(0))).getHealth());
+                objectOut.writeInt(((Player) (otherPlayer.get(0))).getCharges());
+                objectOut.writeObject(((Player) (otherPlayer.get(0))).getAction());
+                objectOut.writeObject(((Player) (otherPlayer.get(0))).getTarget());
+                objectOut.writeInt(((Player) (otherPlayer.get(0))).getBlock());
+                objectOut.writeInt(((Player) (otherPlayer.get(0))).getReflect());
+                objectOut.writeInt(((Player) (otherPlayer.get(0))).getPoints());
+                }
         }
+
+        public void sendStartMsg() {
+            try {
+                objectOut.writeUTF("All players have connected. Start Game imminent");
+            } catch (IOException e) {
+                System.out.println("IO Exception from sendStartMsg()");
+            }
+        }
+
+        public void sendGameStart() {
+            try {
+                objectOut.writeUTF("Host is starting...");
+            } catch (IOException e) {
+                System.out.println("IOException from sendGameStart()");
+            }
+        }
+
     }
 }

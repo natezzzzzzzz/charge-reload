@@ -112,13 +112,21 @@ public class Player {
             case "Shotgun":
                 this.action = ActionType.SHOTGUN;
                 break;
-            case "RegularBlock":
+            case "Block":
                 this.action = ActionType.REGULAR_BLOCK;
                 break;
             case "SuperBlock":
                 this.action = ActionType.SUPER_BLOCK;
                 break;
-            case 
+            case "Reflect":
+                this.action = ActionType.REFLECT;
+                break;
+            case "SuperReflect":
+                this.action = ActionType.SUPER_REFLECT;
+                break;
+            default:
+                this.action = ActionType.CHARGE;
+                break;
         }
     }
 
