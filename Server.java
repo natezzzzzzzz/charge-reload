@@ -12,6 +12,7 @@ public class Server {
 
     private ArrayList<LinkedList> players = new ArrayList<>();
 
+
     public Server() {
         playercount = 0;
 
@@ -22,6 +23,9 @@ public class Server {
         }
     }
 
+    /**
+     * 
+     */
     public void acceptPlayers() {
         try {
             Socket s = ss.accept();
@@ -46,8 +50,12 @@ public class Server {
             dataIn = in;
         }
 
+        /**
+         * Runs actual game after both players join
+         */
         public void run() {
             try {
+                for(Integer i : players)
                 // datain health
                 // datain charges
                 // datain action

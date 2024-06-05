@@ -97,4 +97,29 @@ public class Player {
         this.action = action;
     }
 
+    //FINISH THIS
+    public void setActionFromString(String action){
+        switch(action){
+            case "Charge":
+                this.action = ActionType.CHARGE;
+                break;
+            case "Bang":
+                this.action = ActionType.BANG;
+                break;
+            case "Knife":
+                this.action = ActionType.KNIFE;
+                break;
+            case "Shotgun":
+                this.action = ActionType.SHOTGUN;
+                break;
+            case "RegularBlock":
+                this.action = ActionType.REGULAR_BLOCK;
+                break;
+            case "SuperBlock":
+                this.action = ActionType.SUPER_BLOCK;
+                break;
+            case 
+        }
+    }
+
 }
