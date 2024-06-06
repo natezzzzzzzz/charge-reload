@@ -100,6 +100,8 @@ public class Server_test {
             try {
                 while (true) {
                     for (LinkedList<Object> player : players) {
+                        if(((Player)player.get(0)).getHealth() < 1)
+                            continue;
                         ((Player) player.get(0)).setHealth(ObjectIn.readInt());
                         ((Player) player.get(0)).setCharges(ObjectIn.readInt());
                         ((Player) player.get(0)).setAction((ActionType) ObjectIn.readObject());
@@ -110,11 +112,38 @@ public class Server_test {
                         // player.set(0, (Player) ObjectIn.readObject());
                     }
 
+                    //non weapon actions for each player
                     for (LinkedList<Object> player : players) {
-                        // action of player
-                        if (((Player) player.get(0)).getAction().equals(ActionType.CHARGE)) {
-                            // objectOut.writeUTF(gameplay details);
+                        if(((Player)player.get(0)).getHealth() < 1)
+                            continue;
+                        // objectOut.writeUTF(gameplay details)
+                        //Player didn't have action/ran out of time
+                        if (((Player) player.get(0)).getAction() == null)
+                            gameplayString += ((Player) player.get(0)).getName() + " didn't make a move in time. "+ game.charge((Player) player.get(0)) + "\n";
+                        // Player charges
+                        if (((Player) player.get(0)).getAction() == ActionType.CHARGE ) {
                             gameplayString += game.charge((Player) player.get(0)) + "\n";
+                        }
+                        //Player uses reflect
+                        if (((Player) player.get(0)).getAction() == ActionType.REFLECT || ((Player) player.get(0)).getAction() == ActionType.SUPER_REFLECT) {
+                            gameplayString += game.reflect(((Player) player.get(0)),((Player) player.get(0)).getAction()) + "\n";
+                        }
+                        //Player uses block
+                        if (((Player) player.get(0)).getAction() == ActionType.REGULAR_BLOCK || ((Player) player.get(0)).getAction() == ActionType.SUPER_BLOCK) {
+                            gameplayString += game.block(((Player) player.get(0)),((Player) player.get(0)).getAction())    + "\n";
+                        }
+                    }
+
+                    for (LinkedList<Object> player : players) {
+                        if(((Player)player.get(0)).getHealth() < 1)
+                            continue;
+                        // Player knives and targets a player
+                        if (((Player) player.get(0)).getAction() == ActionType.KNIFE) {
+                            gameplayString += game.knife(((Player) player.get(0)),((Player) player.get(0)).getTarget()) + "\n";
+                        }
+                        // Player uses a projectile and targets a player
+                        if (((Player) player.get(0)).getAction() == ActionType.BANG || ((Player) player.get(0)).getAction() == ActionType.SHOTGUN){
+                            gameplayString += game.projectile(((Player) player.get(0)),((Player) player.get(0)).getTarget(),((Player) player.get(0)).getAction()) + "\n";
                         }
                     }
 
@@ -195,6 +224,25 @@ public class Server_test {
                         ((Player) p.get(0)).setAction(ActionType.CHARGE);
                     }
                     Thread.sleep(6000);
+
+                    //check if one person is alive
+                    Player alive = null;//the variable for the person alive
+                    boolean gameEnd = false;//if the game has ended
+                    for(LinkedList<Object> player: players){
+                        if(alive != null && ((Player)player.get(0)).getHealth() > 0){//if there's two people alive, game has not ended
+                            gameEnd = false;
+                            break;
+                        }
+                        if(((Player)player.get(0)).getHealth() > 0){//if one person is alive, game ended
+                            gameEnd = true;
+                            alive = (Player)player.get(0);
+                        }
+                    }
+                    if(alive == null)//if no one is alive, then game ends in a tie
+                        gameEnd = true;
+                    objectOut.writeBoolean(gameEnd);//write to GUI, if null then game is a tie
+                    objectOut.writeObject(alive);
+                    
                 }
             } catch (IOException e) {
                 System.out.println("IOException from WTC run.");
